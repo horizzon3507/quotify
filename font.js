@@ -4,11 +4,7 @@ import { pipeline } from "node:stream/promises";
 
 const font_table = [
   {
-    name: "NotoSans",
-    url: "https://github.com/google/fonts/raw/main/ofl/notosans/NotoSans%5Bwdth%2Cwght%5D.ttf",
-  },
-  {
-    name: "NotoSans-JP",
+    name: "NotoSansJP",
     url: "https://github.com/google/fonts/raw/main/ofl/notosansjp/NotoSansJP%5Bwght%5D.ttf",
   },
 ];
@@ -33,13 +29,14 @@ export async function fontCheck() {
   }
 }
 
-export function getFontList() {
-  let list = [];
+export async function loadFonts() {
+  const fonts = {};
   for (const font of font_table) {
-    list.push({
-      name: font.name,
-      path: `font/${font.name}.ttf`,
-    });
+    const path = `font/${font.name}.ttf`;
+    if (!fs.existsSync(path)) continue;
+    fonts[font.name] = {
+      regular: new Uint8Array(await fs.promises.readFile(path)),
+    };
   }
-  return list;
+  return fonts;
 }
