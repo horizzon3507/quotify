@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { Client, Events } from "@fluxerjs/core";
+import { HttpService, MemoryStore, Yuzuha } from "yuzuha";
+import { Client, Events } from "yuzuha/sdk";
 import { generateQuote, quoteInit } from "./quote.js";
 import { fontCheck } from "./font.js";
 
@@ -12,23 +13,33 @@ if (!TOKEN) {
 const API_URL = process.env.FLUXER_API_URL;
 
 await fontCheck();
-quoteInit();
+await quoteInit();
 
 const clientOptions = { waitForGuilds: true };
 const client = !API_URL
-  ? new Client(clientOptions)
+  ? undefined
   : await Client.fromDiscovery(API_URL.toString(), clientOptions);
 
-client.on(Events.Ready, () =>
-  console.log(`miq-bot online in ${client.guilds.size} guilds`),
+const http = new HttpService({ allowPrivate: true });
+const bot = new Yuzuha({
+  name: "quotify",
+  ...(client ? { client } : { clientOptions }),
+  store: new MemoryStore(),
+  scheduler: false,
+  http,
+  onError: (err) => console.error("Client error:", err),
+});
+
+bot.once(Events.Ready, () =>
+  console.log(`quotify online in ${bot.client.guilds.size} guilds`),
 );
 
-client.on(Events.MessageCreate, async (message) => {
+bot.on(Events.MessageCreate, async (message) => {
   if (message.author.bot || !message.content) return;
 
   const botMentioned =
-    message.mentions?.users?.has(client.user.id) ||
-    message.content.includes(`<@${client.user.id}>`);
+    message.mentions?.users?.has(bot.client.user.id) ||
+    message.content.includes(`<@${bot.client.user.id}>`);
   if (!botMentioned) return;
 
   if (!message.referencedMessage) {
@@ -53,25 +64,29 @@ client.on(Events.MessageCreate, async (message) => {
       : "";
 
   try {
-    const botUser = client.user;
+    const botUser = bot.client.user;
     const botDiscriminator =
       botUser.discriminator && botUser.discriminator !== "0"
         ? `#${botUser.discriminator}`
         : "";
-    const imageBuffer = await generateQuote({
+    const image = await generateQuote({
       text,
-      displayName: targetUser.displayName ?? targetUser.username,
       tag: `${targetUser.username}${discriminator}`,
       avatarUrl: targetUser.displayAvatarURL({ size: 512 }),
       botTag: `${botUser.username}${botDiscriminator}`,
+      http,
+      signal: bot.signal,
     });
-    await message.reply({ files: [{ name: "quote.png", data: imageBuffer }] });
+    await message.reply({
+      files: [{ name: "quote.png", data: Buffer.from(image.data) }],
+    });
   } catch (err) {
     console.error("Quote generation failed:", err);
     await message.reply("Something went wrong generating the quote.");
   }
 });
 
-client.on(Events.Error, (err) => console.error("Client error:", err));
+process.once("SIGINT", () => void bot.destroy());
+process.once("SIGTERM", () => void bot.destroy());
 
-await client.login(TOKEN);
+await bot.login(TOKEN);

@@ -1,7 +1,7 @@
 {
   "name": "miq-bot",
-  "version": "1.0.0",
-  "description": "Make it a Quote bot for Fluxer",
+  "version": "0.1.0",
+  "description": "Make it a Quote bot for Fluxer, built on yuzuha",
   "type": "module",
   "main": "bot.js",
   "scripts": {
@@ -9,9 +9,9 @@
     "dev": "node --watch bot.js"
   },
   "dependencies": {
-    "@fluxerjs/core": "^3.3.0",
-    "@napi-rs/canvas": "^0.1.65",
-    "dotenv": "^16.4.5"
+    "@napi-rs/canvas": "~1.0.13",
+    "dotenv": "^16.4.5",
+    "yuzuha": "^0.2.1"
   },
   "engines": {
     "node": ">=22.13"
