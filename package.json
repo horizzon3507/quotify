@@ -1,6 +1,6 @@
 {
   "name": "miq-bot",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Make it a Quote bot for Fluxer, built on yuzuha",
   "type": "module",
   "main": "bot.js",
