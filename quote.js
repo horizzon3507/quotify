@@ -83,14 +83,7 @@ function layout(text) {
   return { fontSize, lines };
 }
 
-export async function generateQuote({
-  text,
-  tag,
-  avatarUrl,
-  botTag = "quotify",
-  http,
-  signal,
-}) {
+function buildCard({ text, tag, botTag, avatar, http, signal }) {
   const card = createCanvas(CANVAS_W, CANVAS_H, {
     background: "#000",
     fonts,
@@ -98,19 +91,14 @@ export async function generateQuote({
     signal,
   });
 
-  if (avatarUrl && http) {
-    try {
-      const res = await http.requestBytes({ method: "GET", url: avatarUrl });
-      if (res.ok) {
-        card.image(res.body, {
-          x: 0,
-          y: 0,
-          width: AVATAR_W,
-          height: CANVAS_H,
-          fit: "cover",
-        });
-      }
-    } catch {}
+  if (avatar) {
+    card.image(avatar, {
+      x: 0,
+      y: 0,
+      width: AVATAR_W,
+      height: CANVAS_H,
+      fit: "cover",
+    });
   }
 
   card.rect({
@@ -178,5 +166,32 @@ export async function generateQuote({
     overflow: "ellipsis",
   });
 
-  return card.render({ format: "png" });
+  return card;
+}
+
+const RETRYABLE = new Set(["CANVAS_INPUT", "CANVAS_PROCESS"]);
+
+export async function generateQuote({
+  text,
+  tag,
+  avatarUrl,
+  botTag = "quotify",
+  http,
+  signal,
+}) {
+  let avatar;
+  if (avatarUrl && http) {
+    try {
+      const res = await http.requestBytes({ method: "GET", url: avatarUrl });
+      if (res.ok) avatar = res.body;
+    } catch {}
+  }
+
+  const opts = { text, tag, botTag, avatar, http, signal };
+  try {
+    return await buildCard(opts).render({ format: "png" });
+  } catch (err) {
+    if (!avatar || !RETRYABLE.has(err?.code)) throw err;
+    return buildCard({ ...opts, avatar: undefined }).render({ format: "png" });
+  }
 }

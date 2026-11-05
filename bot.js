@@ -21,6 +21,11 @@ const client = !API_URL
   : await Client.fromDiscovery(API_URL.toString(), clientOptions);
 
 const http = new HttpService({ allowPrivate: true });
+const cooldowns = new Map();
+const QUOTE_COOLDOWN_MS = 10_000;
+const MAX_RENDERS = 2;
+let activeRenders = 0;
+
 const bot = new Yuzuha({
   name: "quotify",
   ...(client ? { client } : { clientOptions }),
@@ -55,6 +60,18 @@ bot.on(Events.MessageCreate, async (message) => {
     return;
   }
 
+  const lastQuote = cooldowns.get(message.author.id) ?? 0;
+  if (Date.now() - lastQuote < QUOTE_COOLDOWN_MS) {
+    await message.reply("Give me a few seconds before quoting again.");
+    return;
+  }
+  if (activeRenders >= MAX_RENDERS) {
+    await message.reply("I'm busy rendering — try again in a moment.");
+    return;
+  }
+  cooldowns.set(message.author.id, Date.now());
+  activeRenders++;
+
   const text =
     ref.content.length > 500 ? ref.content.slice(0, 497) + "..." : ref.content;
   const targetUser = ref.author;
@@ -69,20 +86,29 @@ bot.on(Events.MessageCreate, async (message) => {
       botUser.discriminator && botUser.discriminator !== "0"
         ? `#${botUser.discriminator}`
         : "";
+    const tag = `${targetUser.username}${discriminator}`;
     const image = await generateQuote({
       text,
-      tag: `${targetUser.username}${discriminator}`,
+      tag,
       avatarUrl: targetUser.displayAvatarURL({ size: 512 }),
       botTag: `${botUser.username}${botDiscriminator}`,
       http,
       signal: bot.signal,
     });
     await message.reply({
-      files: [{ name: "quote.png", data: Buffer.from(image.data) }],
+      files: [
+        {
+          name: "quote.png",
+          data: Buffer.from(image.data),
+          description: `Quote by ${tag}: ${text}`,
+        },
+      ],
     });
   } catch (err) {
     console.error("Quote generation failed:", err);
     await message.reply("Something went wrong generating the quote.");
+  } finally {
+    activeRenders--;
   }
 });
 
