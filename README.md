@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://web.fluxer.app/oauth2/authorize?client_id=1503854312091857983&scope=bot&permissions=101376"><img src="make_it_a_quote.png" width="150"/></a>
+  <a href="https://web.fluxer.app/oauth2/authorize?client_id=1503854312091857983&scope=bot&permissions=101376"><img src="brand/png/icone-principal-circulo-512.png" width="150"/></a>
 </p>
 
 <h1 align="center">quotify</h1>
@@ -52,6 +52,12 @@ rendering; later starts reuse the cached files.
 Built on [yuzuha](https://www.npmjs.com/package/yuzuha): gateway events come
 from `yuzuha/sdk` (Fluxer.js 3.3.0), and quote cards are composed with
 `yuzuha/canvas` and rendered by `@napi-rs/canvas` in a worker process.
+
+## Brand
+
+The quotify mark — two quotes and a smile — lives in [`brand/`](brand) in SVG
+and PNG variants (violet `#7B61FF`, night purple `#2B1B5A`, lilac `#EDE9FE`).
+Cards carry the same palette and the mark sits in the bottom-right corner.
 
 ## Changelog
 

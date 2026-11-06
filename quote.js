@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { createCanvas } from "yuzuha/canvas";
 import { createCanvas as createMeasureCanvas, GlobalFonts } from "@napi-rs/canvas";
 import { loadFonts } from "./font.js";
@@ -13,9 +14,15 @@ const ATTR_ZONE = 102;
 const ATTR_GAP = 14;
 const LINE_HEIGHT = 1.55;
 const FONT = "NotoSansJP";
+const BG = "#2B1B5A";
+const VIOLET = "#7B61FF";
+const LILAC = "#EDE9FE";
+const MARK_SIZE = 28;
+const MARK_PAD = 16;
 
 let fonts = {};
 let measureCtx;
+let brandMark;
 
 const graphemes = (value) => [
   ...new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(value),
@@ -27,6 +34,11 @@ export async function quoteInit() {
     GlobalFonts.register(Buffer.from(entry.regular), family);
   }
   measureCtx = createMeasureCanvas(1, 1).getContext("2d");
+  try {
+    brandMark = await readFile(
+      new URL("./brand/png/icone-escuro-circulo-512.png", import.meta.url),
+    );
+  } catch {}
 }
 
 function wrapLines(text, fontSize) {
@@ -85,7 +97,7 @@ function layout(text) {
 
 function buildCard({ text, tag, botTag, avatar, http, signal }) {
   const card = createCanvas(CANVAS_W, CANVAS_H, {
-    background: "#000",
+    background: BG,
     fonts,
     http,
     signal,
@@ -113,8 +125,8 @@ function buildCard({ text, tag, botTag, avatar, http, signal }) {
       x1: AVATAR_W,
       y1: 0,
       stops: [
-        { offset: 0, color: "rgba(0,0,0,0)" },
-        { offset: 1, color: "rgba(0,0,0,1)" },
+        { offset: 0, color: "rgba(43,27,90,0)" },
+        { offset: 1, color: "rgba(43,27,90,1)" },
       ],
     },
   });
@@ -148,19 +160,30 @@ function buildCard({ text, tag, botTag, avatar, http, signal }) {
     maxWidth: TEXT_MAX_W,
     fontSize: 28,
     family: FONT,
-    color: "#fff",
+    color: LILAC,
     align: "center",
     wrap: "none",
     overflow: "ellipsis",
   });
 
+  let markRight = CANVAS_W - MARK_PAD;
+  if (brandMark) {
+    card.image(brandMark, {
+      x: markRight - MARK_SIZE,
+      y: CANVAS_H - MARK_PAD - MARK_SIZE,
+      width: MARK_SIZE,
+      height: MARK_SIZE,
+    });
+    markRight -= MARK_SIZE + 10;
+  }
+
   card.text(botTag, {
-    x: CANVAS_W - 20 - 480,
-    y: CANVAS_H - 16 - 16,
+    x: markRight - 480,
+    y: CANVAS_H - MARK_PAD - MARK_SIZE + (MARK_SIZE - 16) / 2,
     maxWidth: 480,
     fontSize: 16,
     family: FONT,
-    color: "rgba(100,100,100,0.75)",
+    color: VIOLET,
     align: "right",
     wrap: "none",
     overflow: "ellipsis",
