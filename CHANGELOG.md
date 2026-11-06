@@ -29,6 +29,17 @@ We only call something **stable** when we mean it.
 
 </details>
 
+## v0.2.0-stable · 06/11/2026
+
+New violet identity plus hardened quote generation. This version was made for Bot with a stable release channel on 06/11/2026 (v0.2.0-stable).
+
+- New quotify identity: the two-quotes-and-a-smile mark on violet `#7B61FF`, with the full kit (SVG + PNG, light/dark/circle variants) under `brand/`.
+- Quote cards repainted in brand colors — night-purple `#2B1B5A` background and avatar fade, lilac `#EDE9FE` attribution, and a violet watermark carrying the mark in the bottom-right corner.
+- Broken or animated avatars no longer fail the render: the card falls back to the clean branded layout without the avatar.
+- Spam protection: a 10-second per-user cooldown and a cap of two concurrent renders, both answered with short replies.
+- Quote attachments now carry alt text (`Quote by <tag>: <text>`) so they stay readable for screen readers.
+- README header and `package.json` description updated to the new identity.
+
 ## v0.1.0-stable · 04/11/2026
 
 First Hory-tracked cut: the quote-card bot rebuilt on the yuzuha framework. This version was made for Bot with a stable release channel on 04/11/2026 (v0.1.0-stable).

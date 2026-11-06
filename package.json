@@ -1,6 +1,6 @@
 {
   "name": "miq-bot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "quotify — turn replies into shareable quote cards on Fluxer, built on yuzuha",
   "type": "module",
   "main": "bot.js",
